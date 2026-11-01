@@ -1,3 +1,4 @@
+from dashboard.home_container import DashboardWindow
 from authentication.register import RegisterFrame
 from authentication.login import LoginFrame
 from database.db import initialize_database
@@ -7,34 +8,41 @@ import tkinter as tk
 
 sys.path.append(os.path.dirname(__file__))
 
+
 class SimuLabApp:
     def __init__(self, root):
         self.root = root
+        self.student_data = None
+        self.show_auth_window()
+
+    def show_auth_window(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
         self.root.title("SimuLab - Authentication")
         self.root.geometry("450x550")
         self.root.configure(bg="#060b13")
         self.root.resizable(False, False)
 
-        self.current_frame = None
-        self.show_login()
-
-    def show_login(self):
-        if self.current_frame:
-            self.current_frame.destroy()
         self.current_frame = LoginFrame(
             self.root, self.show_register, self.on_login_success)
         self.current_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
     def show_register(self):
-        if self.current_frame:
-            self.current_frame.destroy()
-        self.current_frame = RegisterFrame(self.root, self.show_login)
+        for widget in self.root.winfo_children():
+            widget.destroy()
+        self.current_frame = RegisterFrame(self.root, self.show_auth_window)
         self.current_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
     def on_login_success(self, student_data):
-        print(
-            f"Logged in successfully as: {student_data['full_name']} ({student_data['username']})")    
-        self.root.destroy()
+        self.student_data = student_data
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # Launch Dashboard Window upon successful authentication[cite: 1]
+        self.dashboard = DashboardWindow(
+            self.root, self.student_data, self.show_auth_window)
+        self.dashboard.pack(fill=tk.BOTH, expand=True)
 
 
 def main():
